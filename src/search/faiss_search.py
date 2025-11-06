@@ -8,11 +8,16 @@ from src.search.base import SearchEngine
 
 
 class FAISSSearch(SearchEngine):
-    
-    def __init__(self):
+    def __init__(self, embedding_generator=None):
         self.index: Optional[faiss.Index] = None
         self.actions: Optional[List[Action]] = None
-        self.dimension = settings.EMBEDDING_DIMENSION
+        
+        # Get dimension from embedding generator if provided, otherwise use settings
+        # This makes the dimension dynamic based on which embedding model is being used
+        if embedding_generator is not None:
+            self.dimension = embedding_generator.get_dimension()
+        else:
+            self.dimension = settings.EMBEDDING_DIMENSION
     
     def get_name(self) -> str:
         return "FAISS"
@@ -40,19 +45,6 @@ class FAISSSearch(SearchEngine):
         query_embedding: np.ndarray, 
         k: int = None
     ) -> Tuple[SearchResult, List[dict]]:
-        """
-        Search for the k most similar actions to the query.
-        
-        Args:
-            query_embedding: The embedding to search for (can be 1D or 2D)
-            k: Number of results to return (default: from settings)
-            
-        Returns:
-            Tuple of (primary SearchResult, list of all results)
-            
-        Raises:
-            Exception: If the index hasn't been created yet
-        """
         # Validate that we have an index
         if self.index is None or self.actions is None:
             raise Exception("Index not initialized. Call index_actions() first.")

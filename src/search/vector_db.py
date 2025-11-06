@@ -8,14 +8,19 @@ from src.search.base import SearchEngine
 
 
 class VectorDBSearch(SearchEngine):
-    def __init__(self):
+    def __init__(self, embedding_generator=None):
         self.client = chromadb.Client()
+        
+        # ChromaDB uses its own embedding function
+        # It currently only supports sentence-transformers models
+        # So we use the model name from settings
         self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name=settings.EMBEDDING_MODEL
         )
         
         self.collection = None
         self.actions = None
+        self.embedding_generator = embedding_generator
         
         print(f"📦 ChromaDB initialized with {settings.EMBEDDING_MODEL}")
     

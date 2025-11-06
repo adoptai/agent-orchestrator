@@ -91,7 +91,7 @@ def main():
         
         # Index in FAISS
         print("   • Indexing actions in FAISS...")
-        faiss_engine = FAISSSearch()
+        faiss_engine = FAISSSearch(embedding_generator)
         faiss_engine.index_actions(actions, action_embeddings)
         
         # Search with FAISS
@@ -115,7 +115,7 @@ def main():
         
         # Index in ChromaDB
         print("   • Indexing actions in ChromaDB...")
-        vectordb_engine = VectorDBSearch()
+        vectordb_engine = VectorDBSearch(embedding_generator)
         vectordb_engine.index_actions(actions)  # No embeddings parameter!
         
         # Search with ChromaDB 
