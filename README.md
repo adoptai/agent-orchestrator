@@ -8,12 +8,16 @@ The Intent Matcher analyzes user messages from conversations and automatically d
 
 - **Sentence Transformers** to convert text into semantic embeddings (768-dimensional vectors)
 - **FAISS** for fast similarity search across action embeddings
+- **ChromaDB** for comparison - handles embeddings automatically
 - **Configurable thresholds** to determine match quality and handle ambiguous cases
+
+The system now compares **two different approaches** to vector search side-by-side, showing you the performance and architectural differences!
 
 ### Key Features
 
 ✅ **Semantic Understanding**: Uses AI embeddings to understand meaning, not just keywords  
 ✅ **Fast Search**: FAISS enables millisecond searches even with thousands of actions  
+✅ **Dual Search Engine Comparison**: Compare FAISS vs ChromaDB side-by-side with performance metrics  
 ✅ **Intelligent Matching**: Handles clear matches, no matches, and confusing cases  
 ✅ **Highly Configurable**: Adjust thresholds to tune behavior without code changes  
 ✅ **Modular Architecture**: Clean separation of concerns, easy to extend  
@@ -41,11 +45,11 @@ pip install -r requirements.txt
 
 This will install:
 - `sentence-transformers` - For generating semantic embeddings
-- `faiss-cpu` - For fast vector similarity search
+- `faiss-cpu` - For fast vector similarity search (manual embedding approach)
+- `chromadb` - For automated vector database search (comparison)
 - `requests` - For HTTP API calls
 - `python-dotenv` - For environment variable management
 - `numpy` - For numerical operations
-- `chromadb` - For potential future comparisons
 
 3. **Configure environment variables**:
 
@@ -159,17 +163,113 @@ MATCH RESULT
 ================================================================================
 ```
 
+## 🔬 FAISS vs ChromaDB Comparison
+
+The application now compares two different approaches to vector search side-by-side!
+
+### Two Philosophies
+
+**FAISS (Low-Level Control)**
+```python
+# You manage embeddings manually
+embeddings = generator.generate(texts)
+faiss_engine.index_actions(actions, embeddings)
+result = faiss_engine.search(query_embedding)
+```
+
+**ChromaDB (High-Level Convenience)**
+```python
+# ChromaDB handles embeddings automatically
+vectordb_engine.index_actions(actions)  # No embeddings needed!
+result = vectordb_engine.search(query_text=text)  # Pass text directly!
+```
+
+### What You'll See
+
+When you run the application, it will:
+
+1. **Run both searches** on the same data
+2. **Show results from each** method
+3. **Compare performance** - which is faster?
+4. **Verify accuracy** - do both find the same best action?
+5. **Explain differences** - when to use each approach
+
+### Sample Comparison Output
+
+```
+================================================================================
+                    🔬 SEARCH ENGINE COMPARISON: FAISS vs ChromaDB
+================================================================================
+
+🔍 Method 1: FAISS Search
+   Approach: We generate embeddings manually and pass them to FAISS
+   • Indexing actions in FAISS...
+   ✅ Indexed 50 actions in FAISS
+   • Searching for matching actions...
+   ✅ FAISS search completed in 0.0023s
+
+📦 Method 2: ChromaDB Search
+   Approach: ChromaDB generates embeddings automatically from text
+   • Indexing actions in ChromaDB...
+   📥 ChromaDB initialized with sentence-transformers/all-mpnet-base-v2
+   ✅ Indexed 50 actions in ChromaDB
+   • Searching for matching actions...
+   ✅ ChromaDB search completed in 0.0451s
+
+================================================================================
+                              ⚡ PERFORMANCE COMPARISON
+================================================================================
+
+⏱️  FAISS Search Time:    0.0023s
+⏱️  ChromaDB Search Time: 0.0451s
+
+🏆 Winner: FAISS is 19.61x faster!
+
+🎯 Best Match Comparison:
+   FAISS:    Create Project
+   ChromaDB: Create Project
+   ✅ Both methods found the same best action!
+
+================================================================================
+                                💡 KEY DIFFERENCES
+================================================================================
+
+FAISS Approach:
+  ✓ You control embedding generation (more flexible)
+  ✓ Very fast search (optimized for pure vector operations)
+  ✓ Lower level - need to manage embeddings yourself
+  ✓ Best for: High-performance production systems
+  
+ChromaDB Approach:
+  ✓ Handles embeddings automatically (easier to use)
+  ✓ Stores text, metadata, and embeddings together
+  ✓ Higher level - more convenient API
+  ✓ Best for: Rapid prototyping and development
+```
+
+### Key Learnings
+
+**Performance**: FAISS is typically 10-20x faster for pure search operations because it's highly optimized for vector operations. ChromaDB has overhead from managing embeddings and metadata.
+
+**Ease of Use**: ChromaDB is simpler - you pass text and it handles the rest. FAISS requires you to manage embeddings yourself.
+
+**When to Use Each**:
+- **Use FAISS** when: Performance is critical, you need fine-grained control, working with millions of vectors
+- **Use ChromaDB** when: Building prototypes quickly, want metadata management, prefer higher-level APIs
+
 ## 🚧 Future Enhancements
 
 Potential improvements to explore:
 
-- [ ] Add Vector DB support for comparison with FAISS
+- [x] ~~Add Vector DB support for comparison with FAISS~~ ✅ Completed!
 - [ ] Implement caching of action embeddings to disk
 - [ ] Add support for conversation context (not just last message)
+- [ ] Add a web UI for easier experimentation
 - [ ] Add unit tests for all modules
 - [ ] Support batch processing of multiple conversations
 - [ ] Add metrics tracking (accuracy, precision, recall)
 - [ ] Implement more sophisticated matching algorithms
+- [ ] Try other vector databases (Pinecone, Weaviate, Qdrant)
 
 ## 📚 Dependencies
 
@@ -178,6 +278,6 @@ Potential improvements to explore:
 | requests | ≥2.31.0 | HTTP API communication |
 | python-dotenv | ≥1.0.0 | Environment variable management |
 | sentence-transformers | ≥2.2.2 | Generate semantic embeddings |
-| faiss-cpu | ≥1.7.4 | Fast similarity search |
+| faiss-cpu | ≥1.7.4 | Fast similarity search (manual embeddings) |
+| chromadb | ≥0.4.0 | Vector database with automatic embeddings |
 | numpy | ≥1.24.0 | Numerical operations |
-| chromadb | ≥0.4.0 | Future vector database comparison |

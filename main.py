@@ -4,6 +4,7 @@ from src.api.actions import ActionsAPI
 from src.api.conversations import ConversationsAPI
 from src.embeddings.generator import EmbeddingGenerator
 from src.search.faiss_search import FAISSSearch
+from src.search.vector_db import VectorDBSearch
 from src.matching.matcher import IntentMatcher
 from src.utils.logger import logger
 
@@ -75,33 +76,110 @@ def main():
         print(f"✅ Generated user message embedding (dimension: {len(user_embedding)})")
         logger.info("Generated user message embedding")
         
-        # Index in FAISS
-        print("\n🔍 Step 6: Indexing actions in FAISS...")
-        search_engine = FAISSSearch()
-        search_engine.index_actions(actions, action_embeddings)
-        logger.info("Actions indexed in FAISS")
+        # =====================================================================
+        # COMPARISON: FAISS vs ChromaDB
+        # =====================================================================
+        print("\n" + "=" * 80)
+        print("🔬 SEARCH ENGINE COMPARISON: FAISS vs ChromaDB".center(80))
+        print("=" * 80)
         
-        # Search for Matching Actions
-        print("\n🎯 Step 7: Searching for matching actions...")
-        search_result, all_results = search_engine.search(
+        # ---------------------------------------------------------------------
+        # METHOD 1: FAISS (Manual Embedding Management)
+        # ---------------------------------------------------------------------
+        print("\n🔍 Method 1: FAISS Search")
+        print("   Approach: We generate embeddings manually and pass them to FAISS")
+        
+        # Index in FAISS
+        print("   • Indexing actions in FAISS...")
+        faiss_engine = FAISSSearch(embedding_generator)
+        faiss_engine.index_actions(actions, action_embeddings)
+        
+        # Search with FAISS
+        print("   • Searching for matching actions...")
+        faiss_result, faiss_all_results = faiss_engine.search(
             user_embedding, 
             k=settings.TOP_K_RESULTS
         )
-        print(f"✅ Found {len(all_results)} potential matches")
-        logger.info(f"Search completed in {search_result.time_taken:.4f}s")
+        print(f"   ✅ FAISS search completed in {faiss_result.time_taken:.4f}s")
+        logger.info(f"FAISS search completed in {faiss_result.time_taken:.4f}s")
         
-        # Apply Matching Logic
-        print("\n🤔 Step 8: Applying matching logic...")
+        # Apply Matching Logic to FAISS results
         matcher = IntentMatcher()
-        match_result = matcher.match(search_result, all_results)
-        logger.info(f"Match type: {match_result.match_type}")
+        faiss_match = matcher.match(faiss_result, faiss_all_results)
         
-        # Display Results
-        print("\n📊 Step 9: Results")
-        formatted_output = matcher.format_output(match_result, all_results)
-        print(formatted_output)
+        # ---------------------------------------------------------------------
+        # METHOD 2: ChromaDB (Automatic Embedding Management)
+        # ---------------------------------------------------------------------
+        print("\n📦 Method 2: ChromaDB Search")
+        print("   Approach: ChromaDB generates embeddings automatically from text")
+        
+        # Index in ChromaDB
+        print("   • Indexing actions in ChromaDB...")
+        vectordb_engine = VectorDBSearch(embedding_generator)
+        vectordb_engine.index_actions(actions)  # No embeddings parameter!
+        
+        # Search with ChromaDB 
+        print("   • Searching for matching actions...")
+        vectordb_result, vectordb_all_results = vectordb_engine.search(
+            query_text=user_message,  # Pass text, not embedding!
+            k=settings.TOP_K_RESULTS
+        )
+        print(f"   ✅ ChromaDB search completed in {vectordb_result.time_taken:.4f}s")
+        logger.info(f"ChromaDB search completed in {vectordb_result.time_taken:.4f}s")
+        
+        # Apply Matching Logic to ChromaDB results
+        vectordb_match = matcher.match(vectordb_result, vectordb_all_results)
+        
+        # =====================================================================
+        # COMPARISON RESULTS
+        # =====================================================================
+        print("\n" + "=" * 80)
+        print("📊 COMPARISON RESULTS".center(80))
+        print("=" * 80)
+        
+        # Display FAISS results
+        print("\n" + "-" * 80)
+        print("FAISS Results:")
+        print("-" * 80)
+        formatted_faiss = matcher.format_output(faiss_match, faiss_all_results)
+        print(formatted_faiss)
+        
+        # Display ChromaDB results
+        print("\n" + "-" * 80)
+        print("ChromaDB Results:")
+        print("-" * 80)
+        formatted_vectordb = matcher.format_output(vectordb_match, vectordb_all_results)
+        print(formatted_vectordb)
+        
+        # Performance comparison
+        print("\n" + "=" * 80)
+        print("⚡ PERFORMANCE COMPARISON".center(80))
+        print("=" * 80)
+        print(f"\n⏱️  FAISS Search Time:    {faiss_result.time_taken:.4f}s")
+        print(f"⏱️  ChromaDB Search Time: {vectordb_result.time_taken:.4f}s")
+        
+        if faiss_result.time_taken < vectordb_result.time_taken:
+            speedup = vectordb_result.time_taken / faiss_result.time_taken
+            print(f"\n🏆 FAISS is {speedup:.2f}x faster!")
+        else:
+            speedup = faiss_result.time_taken / vectordb_result.time_taken
+            print(f"\n🏆 ChromaDB is {speedup:.2f}x faster!")
+        
+        # Check if both methods found the same action
+        faiss_best = faiss_all_results[0]["action"].title if faiss_all_results else "None"
+        vectordb_best = vectordb_all_results[0]["action"].title if vectordb_all_results else "None"
+        
+        print(f"\n🎯 Best Match Comparison:")
+        print(f"   FAISS:    {faiss_best}")
+        print(f"   ChromaDB: {vectordb_best}")
+        
+        if faiss_best == vectordb_best:
+            print(f"   ✅ Both methods found the same best action!")
+        else:
+            print(f"   ⚠️  Methods found different best actions")
         
         # Completion
+        print("=" * 80)
         print("✅ Analysis complete!\n")
         logger.info("Intent matching workflow completed successfully")
         
