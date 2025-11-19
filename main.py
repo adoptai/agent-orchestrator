@@ -1,3 +1,12 @@
+# ============================================================================
+# CRITICAL: OpenMP Initialization Control
+# ============================================================================
+# This MUST be the first import to properly configure OpenMP before any
+# libraries (numpy, faiss, chromadb) initialize their OpenMP runtimes.
+# This prevents the "multiple copies of OpenMP runtime" error.
+import openmp_init
+
+# Now we can safely import packages that use OpenMP
 from config import settings
 from src.auth.client import AuthClient
 from src.api.actions import ActionsAPI

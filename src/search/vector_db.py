@@ -11,18 +11,30 @@ class VectorDBSearch(SearchEngine):
     def __init__(self, embedding_generator=None):
         self.client = chromadb.Client()
         
-        # ChromaDB uses its own embedding function
-        # It currently only supports sentence-transformers models
-        # So we use the model name from settings
-        self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=settings.EMBEDDING_MODEL
-        )
+        # ChromaDB uses its own embedding function based on the provider
+        # We need to use the appropriate embedding function for each provider
+        if settings.EMBEDDING_PROVIDER == "local":
+            # For local models, use SentenceTransformer
+            self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=settings.EMBEDDING_MODEL
+            )
+        elif settings.EMBEDDING_PROVIDER == "openai":
+            # For OpenAI, use OpenAI embedding function
+            self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=settings.OPENAI_API_KEY,
+                model_name=settings.EMBEDDING_MODEL
+            )
+        else:
+            raise ValueError(
+                f"ChromaDB does not support provider: {settings.EMBEDDING_PROVIDER}. "
+                f"Supported providers: local, openai"
+            )
         
         self.collection = None
         self.actions = None
         self.embedding_generator = embedding_generator
         
-        print(f"📦 ChromaDB initialized with {settings.EMBEDDING_MODEL}")
+        print(f"📦 ChromaDB initialized with {settings.EMBEDDING_PROVIDER}/{settings.EMBEDDING_MODEL}")
     
     def get_name(self) -> str:
         return "ChromaDB"

@@ -68,6 +68,45 @@ CONVERSATION_ID=your_actual_conversation_id_here
 
 ⚠️ **Important**: Replace the placeholder values with your actual API credentials!
 
+### Fixing OpenMP Conflicts on macOS (Recommended)
+
+If you encounter OpenMP library conflicts on macOS (error: "multiple copies of OpenMP runtime"), you should fix it properly by ensuring only a single OpenMP runtime is linked. We provide two solutions:
+
+#### **Option 1: Use Conda Environment (Recommended - Best Practice)**
+
+This is the proper fix that ensures all packages share a single OpenMP runtime:
+
+```bash
+# Run the setup script
+bash setup_environment.sh
+
+# Activate the environment
+conda activate agent-orchestrator
+
+# Run your program
+python main.py
+```
+
+**Why this works**: Conda-forge packages use consistent OpenMP libraries, preventing conflicts. This is the recommended approach as it ensures proper dependency management.
+
+#### **Option 2: Fix with Homebrew (Alternative)**
+
+If you prefer not to use conda, you can fix OpenMP conflicts with Homebrew:
+
+```bash
+# Run the fix script
+bash fix_openmp_pip.sh
+
+# Run your program
+python main.py
+```
+
+**Why this works**: Installs a single OpenMP library via Homebrew and reinstalls packages to use it.
+
+#### **Understanding the Problem**
+
+The OpenMP error occurs when multiple Python packages (numpy, faiss-cpu, chromadb) each include their own copy of the OpenMP library. The proper fix is to ensure all packages use the same OpenMP runtime, not to use workarounds like `KMP_DUPLICATE_LIB_OK=TRUE`.
+
 ### Running the Application
 
 Simply run:

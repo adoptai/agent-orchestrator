@@ -1,0 +1,12 @@
+name: agent-orchestrator
+channels:
+  - conda-forge  # Use conda-forge for better OpenMP management
+  - defaults
+dependencies:
+  - python=3.10
+  # Core packages with proper OpenMP linking from conda-forge
+  - numpy>=1.24.0  # Conda-forge numpy uses consistent OpenMP
+  - pip
+  # Note: faiss-cpu, chromadb, and sentence-transformers will be installed via pip
+  # but they'll use the conda numpy which has proper OpenMP linking
+
