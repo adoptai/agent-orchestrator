@@ -1,0 +1,26 @@
+# ============================================================================
+# Conda Environment Configuration
+# ============================================================================
+# This file creates a conda environment with proper OpenMP management.
+# Conda-forge packages use consistent OpenMP libraries, preventing conflicts.
+#
+# To use this environment:
+#   1. conda env create -f environment.yml
+#   2. conda activate agent-orchestrator
+#   3. pip install -r requirements.txt
+#
+# This ensures all packages use the same OpenMP runtime, eliminating conflicts.
+# ============================================================================
+
+name: agent-orchestrator
+channels:
+  - conda-forge  # Use conda-forge for better OpenMP management
+  - defaults
+dependencies:
+  - python=3.10
+  # Core packages with proper OpenMP linking from conda-forge
+  - numpy>=1.24.0  # Conda-forge numpy uses consistent OpenMP
+  - pip
+  # Note: faiss-cpu, chromadb, and sentence-transformers will be installed via pip
+  # but they'll use the conda numpy which has proper OpenMP linking
+

@@ -26,6 +26,9 @@ class EmbeddingGenerator:
             # Local provider uses sentence-transformers
             # This runs on your computer and doesn't need an API key
             from sentence_transformers import SentenceTransformer
+            # Disable multiprocessing to avoid crashes on macOS
+            import os
+            os.environ["TOKENIZERS_PARALLELISM"] = "false"
             self.model = SentenceTransformer(self.model_name)
             
         elif self.provider == "openai":
@@ -126,7 +129,8 @@ class EmbeddingGenerator:
         if self.provider == "local":
             # Local provider: use sentence-transformers directly
             # convert_to_numpy=True ensures we get numpy arrays (required by FAISS)
-            embeddings = self.model.encode(texts, convert_to_numpy=True)
+            # show_progress_bar=False avoids multiprocessing issues
+            embeddings = self.model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
             
         else:
             # LangChain providers (openai, voyage, titan)

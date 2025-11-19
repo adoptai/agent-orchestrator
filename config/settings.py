@@ -20,7 +20,7 @@ CONVERSATION_ID = os.getenv("CONVERSATION_ID")
 # ============================================================================
 
 # Choose your embedding provider: "local", "openai", "voyage", or "titan"
-EMBEDDING_PROVIDER = "local"  # Default to local (no API key needed)
+EMBEDDING_PROVIDER = "local"  # Using OpenAI (local has issues on macOS)
 
 # Model name depends on your provider:
 # - local: "all-mpnet-base-v2" (default, free, runs on your computer)
