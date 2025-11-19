@@ -1,17 +1,3 @@
-#!/bin/bash
-# ============================================================================
-# Proper OpenMP Fix: Environment Setup Script
-# ============================================================================
-# This script sets up a conda environment with proper OpenMP management.
-# It ensures all packages use a single OpenMP runtime by:
-#   1. Creating a conda environment with numpy from conda-forge
-#   2. Installing other packages via pip (they'll use conda's OpenMP)
-#   3. Verifying OpenMP linkage
-#
-# Usage:
-#   bash setup_environment.sh
-# ============================================================================
-
 set -e  # Exit on any error
 
 echo "============================================================================"

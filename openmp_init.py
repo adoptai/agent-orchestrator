@@ -1,11 +1,3 @@
-"""
-OpenMP Initialization Control Module
-====================================
-This module MUST be imported first, before any other packages that use OpenMP.
-It properly initializes OpenMP settings to prevent conflicts.
-
-CRITICAL: Import this module at the very top of main.py before anything else!
-"""
 import os
 import sys
 
